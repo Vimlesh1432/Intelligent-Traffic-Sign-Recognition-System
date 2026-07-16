@@ -1,0 +1,82 @@
+/* Hide Streamlit Branding */
+body{
+    background:red;
+}
+
+#MainMenu{
+    visibility:hidden;
+}
+
+footer{
+    visibility:hidden;
+}
+
+header{
+    visibility:hidden;
+}
+
+/* Background */
+
+.stApp{
+
+background:linear-gradient(
+135deg,
+#0f172a,
+#1e293b,
+#1e3a8a);
+
+}
+
+/* Card */
+
+.card{
+
+background:white;
+
+padding:25px;
+
+border-radius:18px;
+
+box-shadow:0 10px 30px rgba(0,0,0,.15);
+
+margin-bottom:20px;
+
+}
+
+/* Metric */
+
+[data-testid="metric-container"]{
+
+background:white;
+
+padding:18px;
+
+border-radius:15px;
+
+box-shadow:0 6px 15px rgba(0,0,0,.15);
+
+}
+
+/* Welcome */
+
+.welcome{
+
+font-size:34px;
+
+font-weight:bold;
+
+color:white;
+
+}
+
+/* Subtitle */
+
+.subtitle{
+
+color:#d1d5db;
+
+font-size:18px;
+
+margin-bottom:30px;
+
+}
