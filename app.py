@@ -11,7 +11,8 @@ from database import create_database
 from auth.login import login_page
 from auth.register import register_page
 
-from components.sidebar import sidebar
+from components.navbar import navbar
+from components.header import header
 
 from pages.dashboard import dashboard
 from pages.detect import detect
@@ -30,12 +31,10 @@ st.set_page_config(
     page_icon=PAGE_ICON,
     layout=LAYOUT
 )
-st.sidebar.write("✅ Sidebar Working")
 
 
-#load_css("assets/css/style.css")
-
-#apply_theme()
+load_css("assets/css/style.css")
+apply_theme()
 
 # ----------------------------
 # Create Database
@@ -63,22 +62,32 @@ if "user" not in st.session_state:
 
 if not st.session_state.logged_in:
 
-    st.sidebar.title(APP_NAME)
-
-    menu = st.sidebar.radio(
-        "Navigation",
-        ["Login", "Register"]
+    option = st.radio(
+        "",
+        ["🔐 Login", "📝 Register"],
+        horizontal=True
     )
 
-    if menu == "Login":
+    st.divider()
+
+    if option == "🔐 Login":
         login_page()
     else:
         register_page()
 
+# ----------------------------
+# Main Application
+# ----------------------------
+
 else:
 
-    selected = sidebar()
+    # Header
+    header()
 
+    # Navbar
+    selected = navbar()
+
+    # Pages
     if selected == "Dashboard":
         dashboard()
 
@@ -95,6 +104,7 @@ else:
         settings()
 
     elif selected == "Logout":
+
         st.session_state.logged_in = False
         st.session_state.user = None
         st.rerun()

@@ -7,17 +7,19 @@ def login_page():
     st.subheader("🔐 Login")
 
     email = st.text_input(
-        "Email"
+    "Email",
+    key="login_email"
     )
 
     password = st.text_input(
         "Password",
-        type="password"
+        type="password",
+        key="login_password"
     )
 
     if st.button(
         "Login",
-        use_container_width=True
+        key="login_button"
     ):
 
         if email == "" or password == "":

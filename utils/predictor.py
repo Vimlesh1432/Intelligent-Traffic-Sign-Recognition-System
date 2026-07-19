@@ -31,4 +31,6 @@ def predict(image):
     # Get traffic sign name
     sign_name = TRAFFIC_SIGNS[class_id]
 
-    return sign_name, confidence
+    description = TRAFFIC_SIGNS[class_id]["description"]
+
+    return sign_name, confidence, description

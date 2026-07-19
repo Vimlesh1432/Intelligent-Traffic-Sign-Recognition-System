@@ -3,70 +3,65 @@ import streamlit as st
 
 def apply_theme():
 
-    st.markdown(
-        """
-<style>
+    st.markdown("""
+    <style>
 
-/* Hide Streamlit */
+    #MainMenu{
+        visibility:hidden;
+    }
 
-#MainMenu{
-visibility:hidden;
-}
+    footer{
+        visibility:hidden;
+    }
 
-header{
-visibility:hidden;
-}
+    header{
+        visibility:hidden;
+    }
 
-footer{
-visibility:hidden;
-}
+    .stApp{
 
-/* Main App */
+        background:linear-gradient(
+        135deg,
+        #0f172a,
+        #1e293b,
+        #1d4ed8);
 
-.stApp{
+    }
 
-background:linear-gradient(
-135deg,
-#0f172a,
-#1e293b,
-#1e3a8a);
+    .block-container{
 
-}
+        padding-top:2rem;
+        padding-left:3rem;
+        padding-right:3rem;
 
-/* Metric Cards */
+    }
 
-[data-testid="metric-container"]{
+    div[data-testid="metric-container"]{
 
-background:white;
+        background:white;
 
-padding:20px;
+        padding:20px;
 
-border-radius:18px;
+        border-radius:18px;
 
-border:none;
+        border:none;
 
-box-shadow:0 10px 25px rgba(0,0,0,.2);
+        box-shadow:0 8px 20px rgba(0,0,0,.20);
 
-}
+    }
 
-/* Buttons */
+    .stButton>button{
 
-.stButton>button{
+        border-radius:12px;
 
-width:100%;
+        height:45px;
 
-border-radius:12px;
+        font-weight:bold;
 
-height:45px;
+        width:100%;
 
-font-weight:bold;
+    }
 
-}
-
-
-
-</style>
-
-""",
-        unsafe_allow_html=True,
-    )
+    </style>
+    """,
+    unsafe_allow_html=True)

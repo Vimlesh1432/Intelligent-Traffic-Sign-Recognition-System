@@ -137,17 +137,57 @@ def login_user(email, password):
     return False, "Incorrect Password."
 
 
-def save_prediction(user_id, sign_name, confidence, image_path):
-    """
-    Save prediction history to database.
-    """
+def get_prediction_history(user_id):
 
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO detection_history
-        (user_id, sign_name, confidence, image_path, prediction_time)
+        SELECT
+            id,
+            sign_name,
+            confidence,
+            image_path,
+            prediction_time
+        FROM detection_history
+        WHERE user_id=?
+        ORDER BY id DESC
+    """, (user_id,))
+
+    data = cursor.fetchall()
+
+    conn.close()
+
+    return data
+
+
+def delete_prediction(prediction_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM detection_history WHERE id=?",
+        (prediction_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def save_prediction(user_id, sign_name, confidence, image_path):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO detection_history(
+            user_id,
+            sign_name,
+            confidence,
+            image_path,
+            prediction_time
+        )
         VALUES (?, ?, ?, ?, ?)
     """, (
         user_id,
@@ -160,11 +200,96 @@ def save_prediction(user_id, sign_name, confidence, image_path):
     conn.commit()
     conn.close()
 
+def get_total_predictions(user_id):
 
-def get_prediction_history(user_id):
-    """
-    Fetch prediction history of a user.
-    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT COUNT(*)
+        FROM detection_history
+        WHERE user_id=?
+        """,
+        (user_id,)
+    )
+
+    total = cursor.fetchone()[0]
+
+    conn.close()
+
+    return total
+
+
+def get_today_predictions(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT COUNT(*)
+        FROM detection_history
+        WHERE user_id=?
+        AND DATE(prediction_time)=DATE('now')
+        """,
+        (user_id,)
+    )
+
+    total = cursor.fetchone()[0]
+
+    conn.close()
+
+    return total
+
+
+def get_average_confidence(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT AVG(confidence)
+        FROM detection_history
+        WHERE user_id=?
+        """,
+        (user_id,)
+    )
+
+    value = cursor.fetchone()[0]
+
+    conn.close()
+
+    if value is None:
+        return 0
+
+    return round(value * 100, 2)
+
+
+
+def get_sign_distribution(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            sign_name,
+            COUNT(*) as total
+        FROM detection_history
+        WHERE user_id=?
+        GROUP BY sign_name
+        ORDER BY total DESC
+    """, (user_id,))
+
+    data = cursor.fetchall()
+
+    conn.close()
+
+    return data
+
+def get_recent_predictions(user_id):
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -173,15 +298,15 @@ def get_prediction_history(user_id):
         SELECT
             sign_name,
             confidence,
-            image_path,
             prediction_time
         FROM detection_history
         WHERE user_id=?
         ORDER BY id DESC
+        LIMIT 5
     """, (user_id,))
 
-    rows = cursor.fetchall()
+    data = cursor.fetchall()
 
     conn.close()
 
-    return rows   
+    return data

@@ -22,10 +22,6 @@ LABELS_PATH = os.path.join(
     "labels.csv"
 )
 
-# ==============================
-# App Configuration
-# ==============================
-
 APP_NAME = "Intelligent Traffic Sign Recognition System"
 
 PAGE_TITLE = "Traffic Sign Recognition"

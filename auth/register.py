@@ -7,31 +7,35 @@ def register_page():
     st.subheader("📝 Create Account")
 
     username = st.text_input(
-        "Username"
+        "Username",
+        key="register_username"
     )
 
     email = st.text_input(
-        "Email"
+        "Email",
+        key="register_email"
     )
 
     password = st.text_input(
         "Password",
-        type="password"
+        type="password",
+        key="register_password"
     )
 
     confirm_password = st.text_input(
         "Confirm Password",
-        type="password"
+        type="password",
+        key="register_confirm_password"
     )
 
     if st.button(
         "Register",
-        use_container_width=True
+        key="register_button"
     ):
 
         if (
-            username == ""
-            or email == ""
+            username.strip() == ""
+            or email.strip() == ""
             or password == ""
             or confirm_password == ""
         ):
@@ -39,9 +43,7 @@ def register_page():
             return
 
         if password != confirm_password:
-
             st.error("Passwords do not match.")
-
             return
 
         success, message = register_user(
@@ -51,9 +53,6 @@ def register_page():
         )
 
         if success:
-
             st.success(message)
-
         else:
-
             st.error(message)

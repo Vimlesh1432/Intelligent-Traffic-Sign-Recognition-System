@@ -1,6 +1,5 @@
 import streamlit as st
 import numpy as np
-import cv2
 
 from PIL import Image
 
@@ -31,12 +30,10 @@ def detect():
 
         if st.button("🔍 Predict"):
 
-            image_np = np.array(image)
-
             # AI Prediction
-            sign_name, confidence = predict(image_np)
+            sign_name, confidence, description = predict(image)
 
-            # Save to Database
+            # Save Prediction
             save_prediction(
                 user_id=st.session_state.user["id"],
                 sign_name=sign_name,
@@ -44,18 +41,26 @@ def detect():
                 image_path=uploaded_file.name
             )
 
-            st.success("Prediction Completed Successfully!")
+            st.success("✅ Prediction Completed Successfully!")
+
+            st.divider()
 
             col1, col2 = st.columns(2)
 
             with col1:
+
                 st.metric(
                     "🚦 Traffic Sign",
                     sign_name
                 )
 
+                st.info(description)
+
             with col2:
+
                 st.metric(
                     "📊 Confidence",
-                    f"{confidence*100:.2f}%"
+                    f"{confidence * 100:.2f}%"
                 )
+
+                st.progress(confidence)

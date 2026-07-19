@@ -1,17 +1,28 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from database import get_sign_distribution
+from database import get_recent_predictions
 
+from database import (
+    get_total_predictions,
+    get_today_predictions,
+    get_average_confidence,
+)
 
 def dashboard():
-
-    st.title("🚦 Intelligent Traffic Sign Recognition System")
-
-    st.caption("AI Powered Traffic Sign Detection Dashboard")
 
     st.success(
         f"👋 Welcome back, {st.session_state.user['username']}"
     )
+
+    user_id = st.session_state.user["id"]
+
+    total_predictions = get_total_predictions(user_id)
+
+    today_predictions = get_today_predictions(user_id)
+
+    average_confidence = get_average_confidence(user_id)
 
     st.write("")
 
@@ -19,10 +30,25 @@ def dashboard():
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("Predictions", 125)
-    c2.metric("Accuracy", "98.6%")
-    c3.metric("Today's Scan", 12)
-    c4.metric("Traffic Signs", 43)
+    c1.metric(
+    "Predictions",
+    total_predictions
+    )
+
+    c2.metric(
+        "Average Confidence",
+        f"{average_confidence}%"
+    )
+
+    c3.metric(
+        "Today's Scan",
+        today_predictions
+    )
+
+    c4.metric(
+        "Traffic Signs",
+        43
+    )
 
     st.divider()
 
@@ -75,37 +101,35 @@ def dashboard():
 
     with right:
 
-        pie = pd.DataFrame({
+        distribution = get_sign_distribution(user_id)
 
-            "Traffic Sign": [
+        if distribution:
 
-                "Speed Limit",
+            pie = pd.DataFrame(
+                distribution,
+                columns=[
+                    "Traffic Sign",
+                    "Count"
+                ]
+            )
 
-                "Stop",
+            fig2 = px.pie(
+                pie,
+                names="Traffic Sign",
+                values="Count",
+                title="Traffic Sign Distribution"
+            )
 
-                "Yield",
+            st.plotly_chart(
+                fig2,
+                use_container_width=True
+            )
 
-                "No Entry",
+        else:
 
-                "Parking"
+            st.info("No prediction data available.")
 
-            ],
 
-            "Count": [
-
-                40,
-
-                15,
-
-                12,
-
-                20,
-
-                13
-
-            ]
-
-        })
 
         fig2 = px.pie(
 
@@ -130,41 +154,34 @@ def dashboard():
 
     st.subheader("📜 Recent Predictions")
 
-    history = pd.DataFrame({
+    recent = get_recent_predictions(user_id)
 
-        "Image": [
+    if recent:
 
-            "img1.jpg",
+        history = pd.DataFrame(
+            recent,
+            columns=[
+                "Traffic Sign",
+                "Confidence",
+                "Prediction Time"
+            ]
+        )
 
-            "img2.jpg",
+        history["Confidence"] = (
+            history["Confidence"] * 100
+        ).round(2).astype(str) + "%"
 
-            "img3.jpg"
+        st.dataframe(
+            history,
+            use_container_width=True,
+            hide_index=True
+        )
 
-        ],
+    else:
 
-        "Prediction": [
+        st.info("No recent predictions.")
 
-            "Stop",
-
-            "Speed Limit",
-
-            "Yield"
-
-        ],
-
-        "Confidence": [
-
-            "99%",
-
-            "98%",
-
-            "96%"
-
-        ]
-
-    })
-
-    st.dataframe(
+        st.dataframe(
         history,
         use_container_width=True
     )
