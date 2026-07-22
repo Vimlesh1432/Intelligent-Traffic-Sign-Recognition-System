@@ -46,7 +46,7 @@ def apply_theme():
 
         border:none;
 
-        box-shadow:0 8px 20px rgba(0,0,0,.20);
+        box-shadow:0 8px 20px rgba(0,0,0,.15);
 
     }
 

@@ -1,14 +1,18 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from database import get_sign_distribution
-from database import get_recent_predictions
 
 from database import (
     get_total_predictions,
     get_today_predictions,
     get_average_confidence,
+    get_sign_distribution,
+    get_recent_predictions,
+    get_weekly_predictions,
+    get_top_signs,
+    get_best_prediction
 )
+
 
 def dashboard():
 
@@ -18,37 +22,20 @@ def dashboard():
 
     user_id = st.session_state.user["id"]
 
+    # ================= Database Data =================
+
     total_predictions = get_total_predictions(user_id)
-
     today_predictions = get_today_predictions(user_id)
-
     average_confidence = get_average_confidence(user_id)
-
-    st.write("")
 
     # ================= Metrics =================
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric(
-    "Predictions",
-    total_predictions
-    )
-
-    c2.metric(
-        "Average Confidence",
-        f"{average_confidence}%"
-    )
-
-    c3.metric(
-        "Today's Scan",
-        today_predictions
-    )
-
-    c4.metric(
-        "Traffic Signs",
-        43
-    )
+    c1.metric("Predictions", total_predictions)
+    c2.metric("Average Confidence", f"{average_confidence}%")
+    c3.metric("Today's Scan", today_predictions)
+    c4.metric("Traffic Signs", 43)
 
     st.divider()
 
@@ -56,48 +43,37 @@ def dashboard():
 
     left, right = st.columns(2)
 
+    # -------- Weekly Prediction Chart --------
+
     with left:
 
-        df = pd.DataFrame({
+        weekly = get_weekly_predictions(user_id)
 
-            "Day": [
-                "Mon",
-                "Tue",
-                "Wed",
-                "Thu",
-                "Fri",
-                "Sat",
-                "Sun"
-            ],
+        if weekly:
 
-            "Predictions": [
-                20,
-                25,
-                18,
-                30,
-                22,
-                40,
-                35
-            ]
+            df = pd.DataFrame(
+                weekly,
+                columns=["Day", "Predictions"]
+            )
 
-        })
+            fig = px.bar(
+                df,
+                x="Day",
+                y="Predictions",
+                title="Weekly Predictions"
+            )
 
-        fig = px.bar(
+            st.plotly_chart(
+                fig,
+                use_container_width=True,
+                key="weekly_predictions_chart"
+            )
 
-            df,
+        else:
 
-            x="Day",
+            st.info("No weekly prediction data available.")
 
-            y="Predictions",
-
-            title="Weekly Predictions"
-
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
+    # -------- Traffic Sign Distribution --------
 
     with right:
 
@@ -122,35 +98,84 @@ def dashboard():
 
             st.plotly_chart(
                 fig2,
-                use_container_width=True
+                use_container_width=True,
+                key="traffic_sign_distribution_chart"
             )
 
         else:
 
             st.info("No prediction data available.")
 
+    st.divider()
 
+    # ================= Highest Confidence =================
 
-        fig2 = px.pie(
+    st.subheader("🏆 Highest Confidence Prediction")
 
-            pie,
+    best = get_best_prediction(user_id)
 
-            names="Traffic Sign",
+    if best:
 
-            values="Count",
+        col1, col2, col3 = st.columns(3)
 
-            title="Traffic Sign Distribution"
-
+        col1.metric(
+            "🚦 Traffic Sign",
+            best["sign_name"]
         )
 
-        st.plotly_chart(
-            fig2,
-            use_container_width=True
+        col2.metric(
+            "📊 Confidence",
+            f"{best['confidence']*100:.2f}%"
         )
+
+        col3.metric(
+            "🕒 Time",
+            best["prediction_time"]
+        )
+
+    else:
+
+        st.info("No prediction available.")
 
     st.divider()
 
-    # ================= Recent Activity =================
+    # ================= Top Traffic Signs =================
+
+    st.subheader("🔥 Top 5 Detected Traffic Signs")
+
+    top = get_top_signs(user_id)
+
+    if top:
+
+        top_df = pd.DataFrame(
+            top,
+            columns=[
+                "Traffic Sign",
+                "Count"
+            ]
+        )
+
+        fig3 = px.bar(
+            top_df,
+            x="Count",
+            y="Traffic Sign",
+            orientation="h",
+            title="Most Detected Traffic Signs"
+        )
+
+        st.plotly_chart(
+            fig3,
+            use_container_width=True,
+            key="top_signs_chart"
+        )
+
+    else:
+
+        st.info("No prediction data available.")
+
+    st.divider()
+
+    # ================= Recent Predictions =================
 
     st.subheader("📜 Recent Predictions")
 
@@ -180,8 +205,3 @@ def dashboard():
     else:
 
         st.info("No recent predictions.")
-
-        st.dataframe(
-        history,
-        use_container_width=True
-    )

@@ -13,6 +13,7 @@ from auth.register import register_page
 
 from components.navbar import navbar
 from components.header import header
+from components.theme import apply_theme
 
 from pages.dashboard import dashboard
 from pages.detect import detect
@@ -20,7 +21,6 @@ from pages.history import history
 from pages.profile import profile
 from pages.settings import settings
 from utils.helpers import load_css
-from components.theme import apply_theme
 
 # ----------------------------
 # Page Configuration

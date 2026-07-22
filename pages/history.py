@@ -1,24 +1,41 @@
 import streamlit as st
 import pandas as pd
 
-from database import get_prediction_history
+from database import (
+    get_prediction_history,
+    delete_prediction
+)
 
 
 def history():
 
     st.title("📜 Prediction History")
 
+    # ----------------------------
+    # Load Data
+    # ----------------------------
+
+    data = get_prediction_history(
+        st.session_state.user["id"]
+    )
+
+    if not data:
+        st.info("No prediction history found.")
+        return
+
+    # ----------------------------
+    # Statistics
+    # ----------------------------
+
     col1, col2 = st.columns(2)
 
     with col1:
-
         st.metric(
             "Total Predictions",
             len(data)
         )
 
     with col2:
-
         avg = (
             sum(row["confidence"] for row in data)
             / len(data)
@@ -31,21 +48,13 @@ def history():
 
     st.divider()
 
-
-    data = get_prediction_history(
-        st.session_state.user["id"]
-    )
-
-    if not data:
-
-        st.info("No prediction history found.")
-
-        return
+    # ----------------------------
+    # DataFrame
+    # ----------------------------
 
     df = pd.DataFrame(
         [dict(row) for row in data]
     )
-
 
     df.rename(
         columns={
@@ -57,6 +66,10 @@ def history():
         },
         inplace=True,
     )
+
+    df["Confidence"] = (
+        df["Confidence"] * 100
+    ).round(2).astype(str) + "%"
 
     # ----------------------------
     # Search
@@ -76,18 +89,19 @@ def history():
             )
         ]
 
-    df["Confidence"] = (
-        df["Confidence"] * 100
-    ).round(2)
-
-    df["Confidence"] = (
-        df["Confidence"].astype(str) + "%"
-    )
+    # ----------------------------
+    # Table
+    # ----------------------------
 
     st.dataframe(
         df,
-        use_container_width=True
+        use_container_width=True,
+        hide_index=True
     )
+
+    # ----------------------------
+    # Download CSV
+    # ----------------------------
 
     st.download_button(
         label="📥 Download History (CSV)",
@@ -95,3 +109,23 @@ def history():
         file_name="prediction_history.csv",
         mime="text/csv"
     )
+
+    # ----------------------------
+    # Delete Prediction
+    # ----------------------------
+
+    st.divider()
+
+    prediction_id = st.number_input(
+        "Enter Prediction ID to Delete",
+        min_value=1,
+        step=1
+    )
+
+    if st.button("🗑 Delete Prediction"):
+
+        delete_prediction(prediction_id)
+
+        st.success("Prediction Deleted Successfully!")
+
+        st.rerun()

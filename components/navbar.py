@@ -12,7 +12,6 @@ def navbar():
             "History",
             "Profile",
             "Settings",
-            "Logout"
         ],
 
         icons=[
@@ -38,7 +37,7 @@ def navbar():
             },
 
             "icon": {
-                "color": "#38bdf8",
+                "color": "#b3daeb",
                 "font-size": "18px"
             },
 
@@ -46,11 +45,11 @@ def navbar():
                 "font-size": "16px",
                 "text-align": "center",
                 "margin": "0px",
-                "--hover-color": "#1e40af",
+                "--hover-color": "#1b574d",
             },
 
             "nav-link-selected": {
-                "background-color": "#2563eb",
+                "background-color": "#562848",
                 "color": "white",
             },
         },

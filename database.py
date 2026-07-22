@@ -310,3 +310,72 @@ def get_recent_predictions(user_id):
     conn.close()
 
     return data
+
+
+def get_weekly_predictions(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            DATE(prediction_time),
+            COUNT(*)
+        FROM detection_history
+        WHERE user_id=?
+        GROUP BY DATE(prediction_time)
+        ORDER BY DATE(prediction_time) DESC
+        LIMIT 7
+    """, (user_id,))
+
+    data = cursor.fetchall()
+
+    conn.close()
+
+    return data
+
+
+def get_top_signs(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            sign_name,
+            COUNT(*) AS count
+        FROM detection_history
+        WHERE user_id=?
+        GROUP BY sign_name
+        ORDER BY count DESC
+        LIMIT 5
+    """, (user_id,))
+
+    data = cursor.fetchall()
+
+    conn.close()
+
+    return data
+
+
+def get_best_prediction(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            sign_name,
+            confidence,
+            prediction_time
+        FROM detection_history
+        WHERE user_id=?
+        ORDER BY confidence DESC
+        LIMIT 1
+    """, (user_id,))
+
+    data = cursor.fetchone()
+
+    conn.close()
+
+    return data
