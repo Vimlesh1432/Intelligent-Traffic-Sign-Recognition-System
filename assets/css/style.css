@@ -1,82 +1,118 @@
-/* Hide Streamlit Branding */
-body{
-    background:red;
+/* -----------------------------------------------------------
+   Global Fixes & Branding Removal
+   ----------------------------------------------------------- */
+#MainMenu, footer, header { visibility: hidden; }
+
+* {
+    box-sizing: border-box;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-#MainMenu{
-    visibility:hidden;
+/* -----------------------------------------------------------
+   Main Adaptive App Background
+   ----------------------------------------------------------- */
+
+/* Global Adaptive Background */
+.stApp {
+    background-image: url("https://sc04.alicdn.com/kf/A33c85ce40251421493dbd9d0c8555dbbg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #ffffff;
 }
 
-footer{
-    visibility:hidden;
+/* Glass Card Wrapper */
+div[data-testid="stVerticalBlock"] > div {
+    background: none !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-header{
-    visibility:hidden;
+/* Sirf manual card class ko style karein */
+.card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 5px !important;
+    padding: 0.15rem !important;
+    margin-bottom: 0.8rem !important;
+    width: 100% !important;
+    display: -moz-grid-line !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0) !important;
 }
 
-/* Background */
-
-.stApp{
-
-background:linear-gradient(
-135deg,
-#0f172a,
-#1e293b,
-#1e3a8a);
-
+/* Metrics ko alag se style karein */
+[data-testid="metric-container"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 15px !important;
 }
 
-/* Card */
-
-.card{
-
-background:white;
-
-padding:25px;
-
-border-radius:18px;
-
-box-shadow:0 10px 30px rgba(0,0,0,.15);
-
-margin-bottom:20px;
-
+/* Streamlit Dividers (Ghost lines) ko hide karein */
+hr {
+    border: none !important;
+    height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
 }
 
-/* Metric */
-
-[data-testid="metric-container"]{
-
-background:white;
-
-padding:18px;
-
-border-radius:15px;
-
-box-shadow:0 6px 15px rgba(0,0,0,.15);
-
+.card:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    transform: translateY(-1px);
 }
 
-/* Welcome */
-
-.welcome{
-
-font-size:34px;
-
-font-weight:bold;
-
-color:white;
-
+/* Metrics Adaptive Style */
+[data-testid="metric-container"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px !important;
 }
 
-/* Subtitle */
+/* Scrollbar & Table Fix for Responsiveness */
+.stDataFrame, .stPlotlyChart {
+    width: 100% !important;
+}
 
-.subtitle{
+/* Mobile Adjustments */
+@media (max-width: 768px) {
+    .card { padding: 10px !important; }
+}
 
-color:#d1d5db;
+/* -----------------------------------------------------------
+   Charts & Dataframes (Adaptive Width)
+   ----------------------------------------------------------- */
+.stPlotlyChart, .stDataFrame {
+    width: 100% !important;
+    border-radius: 15px;
+    overflow: hidden;
+}
 
-font-size:18px;
+/* Hide horizontal scroll in dataframe */
+div[data-testid="stTable"] {
+    width: 100% !important;
+    background: transparent !important;
+}
 
-margin-bottom:30px;
 
+/* IFrame (Navbar Container) ko transparent banane ke liye */
+iframe[title="streamlit_option_menu.option_menu"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+}
+
+
+/* Kisi bhi extra spacing box ko hatane ke liye jo Streamlit khud banata hai */
+div[data-testid="stHtml"] {
+    background: transparent !important;
+}
+
+/* Global Reset for any unintended markdown cards that catch the navbar */
+div[data-testid="stMarkdownContainer"] {
+    background: transparent !important;
 }

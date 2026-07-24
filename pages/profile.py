@@ -9,345 +9,116 @@ from database import (
     get_top_signs
 )
 
-
-# ==========================================================
-# Profile Page
-# ==========================================================
-
 def profile():
-
-    st.title("👤 My Profile")
-
     user = st.session_state.user
-
     user_id = user["id"]
 
+    # --- Fetch Logic (Same as your original) ---
     total = get_total_predictions(user_id)
-
     today = get_today_predictions(user_id)
-
     accuracy = get_average_confidence(user_id)
-
     best = get_best_prediction(user_id)
-
     top = get_top_signs(user_id)
 
-    st.markdown("""
-    <style>
+    
+    # Adaptive Header (Mobile pe stack, Desktop pe side-by-side)
+    h_left, h_right = st.columns([1, 3])
+    
+    with h_left:
+        st.markdown(f"""
+            <div style="text-align: center;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 
+                     style="width: 140px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);">
+            </div>
+        """, unsafe_allow_html=True)
 
-    .profile-card{
-    background:#18181b;
-    padding:30px;
-    border-radius:18px;
-    border:1px solid #30363d;
-    transition:.3s;
-    }
+    with h_right:
+        st.markdown(f"""
+            <div style="text-align: left; padding: 10px;">
+                <h1 style="margin:0; font-weight:800; color:white;">{user['username']}</h1>
+                <p style="margin:0; opacity:0.6; font-size:16px;">{user['email']}</p>
+                <div style="margin-top:15px;">
+                    <span style="background:rgba(59, 130, 246, 0.2); padding:5px 12px; border-radius:8px; font-size:12px; color:#60a5fa; border:1px solid rgba(59, 130, 246, 0.3); margin-right:5px;">🤖 AI User</span>
+                    <span style="background:rgba(34, 197, 94, 0.2); padding:5px 12px; border-radius:8px; font-size:12px; color:#4ade80; border:1px solid rgba(34, 197, 94, 0.3); margin-right:5px;">🚦 Expert</span>
+                    <span style="background:rgba(255,255,255,0.1); padding:5px 12px; border-radius:8px; font-size:12px; color:white; margin-right:5px;">📅 Joined 2026</span>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    .profile-card:hover{
-    border:1px solid #5b5bd6;
-    box-shadow:0 0 18px rgba(91,91,214,.30);
-    }
+    # ================= 2. Stats Grid (Adaptive 4 Columns) =================
+    s1, s2, s3, s4 = st.columns(4)
+    
+    with s1:
+        st.markdown(f'<div class="card" style="text-align:center; padding:15px;"><p style="margin:0; font-size:12px; opacity:0.6;">TOTAL</p><h2 style="margin:0;">{total}</h2></div>', unsafe_allow_html=True)
+    with s2:
+        st.markdown(f'<div class="card" style="text-align:center; padding:15px;"><p style="margin:0; font-size:12px; opacity:0.6;">TODAY</p><h2 style="margin:0;">{today}</h2></div>', unsafe_allow_html=True)
+    with s3:
+        st.markdown(f'<div class="card" style="text-align:center; padding:15px;"><p style="margin:0; font-size:12px; opacity:0.6;">ACCURACY</p><h2 style="margin:0;">{accuracy}%</h2></div>', unsafe_allow_html=True)
+    with s4:
+        best_val = f"{best['confidence']*100:.1f}%" if best else "0%"
+        st.markdown(f'<div class="card" style="text-align:center; padding:15px;"><p style="margin:0; font-size:12px; opacity:0.6;">BEST</p><h2 style="margin:0;">{best_val}</h2></div>', unsafe_allow_html=True)
 
-    .profile-name{
-    font-size:42px;
-    font-weight:700;
-    color:white;
-    margin-bottom:5px;
-    }
-
-    .profile-email{
-    font-size:16px;
-    color:#b0b0b0;
-    margin-bottom:18px;
-    }
-
-    .small-tag{
-    display:inline-block;
-    padding:5px 12px;
-    background:#242424;
-    border-radius:8px;
-    font-size:13px;
-    margin-right:8px;
-    color:#d0d0d0;
-    }
-
-    .stat-card{
-
-    background:#1f1f1f;
-
-    padding:18px;
-
-    border-radius:15px;
-
-    text-align:center;
-
-    border:1px solid #333;
-
-    }
-
-    .stat-number{
-
-    font-size:38px;
-
-    font-weight:bold;
-
-    color:white;
-
-    }
-
-    .stat-title{
-
-    font-size:14px;
-
-    color:#9ca3af;
-
-    letter-spacing:1px;
-
-    }
-
-    </style>
-    """,unsafe_allow_html=True)
-
-
-    # ==========================================================
-    # User Information
-    # ==========================================================
-
-    left,right = st.columns([1,4])
+    # ================= 3. Activity & Achievements =================
+    left, right = st.columns([2, 1])
 
     with left:
+        # Best Prediction Card
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("🚦 Best Achievement")
+        if best:
+            st.success(f"""
+                **Traffic Sign:** {best['sign_name']}  
+                **Confidence:** {best['confidence']*100:.2f}%  
+                **Time:** {best['prediction_time']}
+            """)
+        else:
+            st.info("No records found yet.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        st.image(
+        # Achievements Card
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("🏅 Badges & Rank")
+        a1, a2, a3 = st.columns(3)
+        with a1:
+            if total >= 10: st.success("🥉 Beginner")
+            else: st.markdown('<div style="opacity:0.4; text-align:center;">🥉 Beginner</div>', unsafe_allow_html=True)
+        with a2:
+            if total >= 50: st.success("🥈 Explorer")
+            else: st.markdown('<div style="opacity:0.4; text-align:center;">🥈 Explorer</div>', unsafe_allow_html=True)
+        with a3:
+            if total >= 100: st.success("🥇 Expert")
+            else: st.markdown('<div style="opacity:0.4; text-align:center;">🥇 Expert</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-            "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-
-            width=170
-
-        )
+        # Popular Signs List
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("📈 Most Detected Signs")
+        if top:
+            for row in top:
+                st.write(f"**{row['sign_name']}** ({row['count']} detections)")
+                st.progress(min(row["count"] / 20, 1.0))
+        else:
+            st.info("Detection history is empty.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with right:
-
-        st.markdown(f"""
-
-    <div class="profile-name">
-
-    {user['username']}
-
-    </div>
-
-    <div class="profile-email">
-
-    {user['email']}
-
-    </div>
-
-    <span class="small-tag">🤖 AI User</span>
-
-    <span class="small-tag">🚦 Traffic Detection</span>
-
-    <span class="small-tag">📅 Joined 2026</span>
-
-    """,unsafe_allow_html=True)
-        
-        st.write("")
-
-        c1,c2,c3,c4 = st.columns(4)
-
-        with c1:
-
-            st.markdown(f"""
-
-        <div class="stat-card">
-
-        <div class="stat-number">
-
-        {total}
-
-        </div>
-
-        <div class="stat-title">
-
-        TOTAL PREDICTIONS
-
-        </div>
-
-        </div>
-
-        """,unsafe_allow_html=True)
-
-        with c2:
-
-            st.markdown(f"""
-
-        <div class="stat-card">
-
-        <div class="stat-number">
-
-        {today}
-
-        </div>
-
-        <div class="stat-title">
-
-        TODAY
-
-        </div>
-
-        </div>
-
-        """,unsafe_allow_html=True)
-
-        with c3:
-
-            st.markdown(f"""
-
-        <div class="stat-card">
-
-        <div class="stat-number">
-
-        {accuracy}%
-
-        </div>
-
-        <div class="stat-title">
-
-        ACCURACY
-
-        </div>
-
-        </div>
-
-        """,unsafe_allow_html=True)
-
-        with c4:
-
-            if best:
-
-                value=f"{best['confidence']*100:.1f}%"
-
-            else:
-
-                value="0%"
-
-            st.markdown(f"""
-
-        <div class="stat-card">
-
-        <div class="stat-number">
-
-        {value}
-
-        </div>
-
-        <div class="stat-title">
-
-        BEST SCORE
-
-        </div>
-
-        </div>
-
-        """,unsafe_allow_html=True)
-
-        st.divider()
-
-
-        left, right = st.columns([2.3, 1])
-
-        with left:
-
-            st.subheader("📌 Recent Activity")
-
-            if best:
-
-                st.success(
-                    f"""
-        ### 🚦 Best Prediction
-
-        **Traffic Sign:** {best['sign_name']}
-
-        **Confidence:** {best['confidence']*100:.2f}%
-
-        **Prediction Time:** {best['prediction_time']}
-        """
-                )
-
-            else:
-
-                st.info("No prediction available yet.")
-
-        
-
-            st.subheader("🏅 Achievements")
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-
-                if total >= 10:
-                    st.success("🥉 Beginner")
-                else:
-                    st.info("🥉 Beginner")
-
-            with col2:
-
-                if total >= 50:
-                    st.success("🥈 Explorer")
-                else:
-                    st.info("🥈 Explorer")
-
-            with col3:
-
-                if total >= 100:
-                    st.success("🥇 Expert")
-                else:
-                    st.info("🥇 Expert")
-
-            if top:
-
-                for i, row in enumerate(top, start=1):
-
-                    st.markdown(
-                        f"""
-        ### #{i} {row['sign_name']}
-
-        Detected **{row['count']}** times.
-        """
-                )
-
-                    st.progress(min(row["count"] / 10, 1.0))
-
-            else:
-
-                st.info("No prediction history available.")
-
-
-
-            with right:
-
-                st.subheader("🤖 AI Health")
-
-                if accuracy >= 90:
-                    st.success("🟢 Excellent")
-
-                elif accuracy >= 75:
-                    st.warning("🟡 Good")
-
-                else:
-                    st.error("🔴 Needs Improvement")
-
-                st.write("")
-
-                st.subheader("⚡ Quick Actions")
-
-                if st.button(
-                    "🚦 New Detection",
-                    use_container_width=True
-                ):
-                    st.info("Open the Detection page from the sidebar.")
-
-                if st.button(
-                    "📜 Prediction History",
-                    use_container_width=True
-                ):
-                    st.info("Open the History page from the sidebar.")
+        # AI Health Card
+        st.markdown('<div class="card" style="text-align:center;">', unsafe_allow_html=True)
+        st.subheader("⚡ AI Status")
+        if accuracy >= 90: st.success("🟢 Excellent")
+        elif accuracy >= 75: st.warning("🟡 Good")
+        else: st.error("🔴 Improving")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # Quick Actions Card
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("🚀 Actions")
+        if st.button("New Detection", use_container_width=True):
+            st.info("Go to 'Detect' page")
+        if st.button("View History", use_container_width=True):
+            st.info("Go to 'History' page")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Footer
+    st.markdown('<p style="text-align:center; opacity:0.3; font-size:12px;">Profile ID: ' + str(user_id).zfill(4) + '</p>', unsafe_allow_html=True)

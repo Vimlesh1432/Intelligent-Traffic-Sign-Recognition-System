@@ -1,5 +1,5 @@
 import streamlit as st
-
+import pandas as pd
 from database import (
     get_total_predictions,
     get_today_predictions,
@@ -7,236 +7,105 @@ from database import (
     delete_prediction
 )
 
-
-# ==========================================================
-# Settings Page
-# ==========================================================
-
 def settings():
-
-    
-    st.caption("Manage your account and application preferences.")
-
     user = st.session_state.user
-
     user_id = user["id"]
 
+    # --- Header Section ---
+    st.title("⚙️ App Settings")
+    st.write("Manage your account, appearance, and data preferences.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Fetch Stats
     total = get_total_predictions(user_id)
     today = get_today_predictions(user_id)
 
-    # ==========================================================
-    # Statistics
-    # ==========================================================
-
-    st.subheader("📊 Statistics")
-
+    # ================= 1. Statistics (Adaptive) =================
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.subheader("📊 Quick Stats")
     c1, c2 = st.columns(2)
+    with c1: st.metric("Total Predictions", total)
+    with c2: st.metric("Today's Count", today)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    c1.metric(
-        "Total Predictions",
-        total
-    )
+    # ================= 2. Appearance & Notifications =================
+    col_left, col_right = st.columns(2)
 
-    c2.metric(
-        "Today's Predictions",
-        today
-    )
+    with col_left:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("🎨 Appearance")
+        theme = st.selectbox("Select Theme", ["Dark", "Light"])
+        animation = st.toggle("Enable Animations", value=True)
+        st.markdown(f'<p style="font-size:12px; opacity:0.6;">Current Theme: {theme}</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.divider()
+    with col_right:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.subheader("🔔 Notifications")
+        st.toggle("Email Notifications", value=True)
+        st.toggle("Prediction Alerts", value=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # ==========================================================
-    # Appearance
-    # ==========================================================
+    # ================= 3. AI System Status =================
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.subheader("🤖 AI System Engine")
+    a1, a2, a3 = st.columns(3)
+    with a1: st.success("✅ Model Loaded")
+    with a2: st.success("✅ SQLite Active")
+    with a3: st.success("✅ 43 Classes")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.subheader("🎨 Appearance")
-
-    theme = st.selectbox(
-        "Select Theme",
-        [
-            "Dark",
-            "Light"
-        ]
-    )
-
-    animation = st.toggle(
-        "Enable Animations",
-        value=True
-    )
-
-    st.info(
-        f"Current Theme : {theme}"
-    )
-
-    st.divider()
-
-    # ==========================================================
-    # Notifications
-    # ==========================================================
-
-    st.subheader("🔔 Notifications")
-
-    email_notification = st.toggle(
-        "Email Notifications",
-        value=True
-    )
-
-    prediction_notification = st.toggle(
-        "Prediction Alerts",
-        value=True
-    )
-
-    st.divider()
-
-    # ==========================================================
-    # AI Status
-    # ==========================================================
-
-    st.subheader("🤖 AI System")
-
-    c1, c2, c3 = st.columns(3)
-
-    c1.success("✅ AI Model Loaded")
-
-    c2.success("✅ SQLite Connected")
-
-    c3.success("✅ 43 Traffic Signs")
-
-    st.divider()
-
-    # ==========================================================
-    # Data Management
-    # ==========================================================
-
+    # ================= 4. Data Management =================
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("📂 Data Management")
-
     history = get_prediction_history(user_id)
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-
+    
+    dm1, dm2 = st.columns(2)
+    with dm1:
         if history:
-
             csv = "ID,Traffic Sign,Confidence,Image,Prediction Time\n"
-
             for row in history:
-
-                csv += (
-                    f"{row['id']},"
-                    f"{row['sign_name']},"
-                    f"{row['confidence']},"
-                    f"{row['image_path']},"
-                    f"{row['prediction_time']}\n"
-                )
-
-            st.download_button(
-                "📥 Export History",
-                csv,
-                "prediction_history.csv",
-                "text/csv",
-                use_container_width=True
-            )
-
+                csv += f"{row['id']},{row['sign_name']},{row['confidence']},{row['image_path']},{row['prediction_time']}\n"
+            st.download_button("📥 Export History", csv, "history.csv", "text/csv", use_container_width=True)
         else:
-
-            st.info("No prediction history.")
-
-    with c2:
-
-        if st.button(
-            "🗑 Clear All History",
-            use_container_width=True
-        ):
-
+            st.info("No records to export.")
+    
+    with dm2:
+        if st.button("🗑 Clear All History", use_container_width=True):
             for row in history:
-
                 delete_prediction(row["id"])
-
-            st.success(
-                "Prediction history cleared successfully."
-            )
-
+            st.success("History cleared!")
             st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.divider()
+    # ================= 5. Project & Developer Info =================
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.subheader("🫆 About Project")
+    st.info("""
+    **Project:** Intelligent Traffic Sign Recognition System  
+    **Version:** 1.0.0  
+    **Stack:** Python, TensorFlow, Streamlit, SQLite, OpenCV
+    """)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # ==========================================================
-    # About Project
-    # ==========================================================
-
-    st.subheader("🫆About Project")
-
-    st.info(
-        """
-**Project Name**
-
-Intelligent Traffic Sign Recognition System
-
-**Version**
-
-1.0.0
-
-**Technology Stack**
-
-• Python
-
-• TensorFlow
-
-• Streamlit
-
-• SQLite
-
-• OpenCV
-
-• Plotly
-
-**Supported Classes**
-
-43 German Traffic Signs
-"""
-    )
-
-    st.divider()
-
-    # ==========================================================
-    # Developer
-    # ==========================================================
-
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("👨‍💻 Developer")
+    st.success("""
+    **Vimlesh Yadav**  
+    Final Year CSE (Data Science)  
+    JSS Academy of Technical Education, Noida
+    """)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.success(
-        """
-Developer
-
-Vimlesh Yadav
-
-Final Year CSE (Data Science)
-
-JSS Academy of Technical Education, Noida
-"""
-    )
-
-    st.divider()
-
-    # ==========================================================
-    # Logout
-    # ==========================================================
-
-    st.subheader("🚪 Logout")
-
-    if st.button(
-        "Logout",
-        use_container_width=True
-    ):
-
+    # ================= 6. Logout Section =================
+    st.markdown('<div class="card" style="border-left: 5px solid #ef4444;">', unsafe_allow_html=True)
+    st.subheader("🚪 Account Security")
+    if st.button("Logout System", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.user = None
-
-        st.success(
-            "Logged out successfully."
-        )
-
+        st.success("Logged out.")
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.divider()
-
+    # Simple Footer
+    st.markdown('<p style="text-align:center; opacity:0.3; font-size:11px;">Settings Build 2026.07.25</p>', unsafe_allow_html=True)

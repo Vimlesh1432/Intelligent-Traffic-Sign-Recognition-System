@@ -6,55 +6,42 @@ from database import (
     delete_prediction
 )
 
-
 def history():
-
+    # --- Header Section ---
     st.title("📜 Prediction History")
+    st.write("Browse, search, and manage your past traffic sign detections.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # ----------------------------
     # Load Data
     # ----------------------------
-
-    data = get_prediction_history(
-        st.session_state.user["id"]
-    )
+    data = get_prediction_history(st.session_state.user["id"])
 
     if not data:
-        st.info("No prediction history found.")
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.info("No prediction history found. Start by detecting some traffic signs!")
+        st.markdown('</div>', unsafe_allow_html=True)
         return
 
     # ----------------------------
-    # Statistics
+    # Statistics (Glass Card)
     # ----------------------------
-
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.subheader("📊 History Statistics")
     col1, col2 = st.columns(2)
 
     with col1:
-        st.metric(
-            "Total Predictions",
-            len(data)
-        )
+        st.metric("Total Predictions", len(data))
 
     with col2:
-        avg = (
-            sum(row["confidence"] for row in data)
-            / len(data)
-        ) * 100
-
-        st.metric(
-            "Average Confidence",
-            f"{avg:.2f}%"
-        )
-
-    st.divider()
+        avg = (sum(row["confidence"] for row in data) / len(data)) * 100
+        st.metric("Average Confidence", f"{avg:.2f}%")
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # ----------------------------
-    # DataFrame
+    # Data Processing
     # ----------------------------
-
-    df = pd.DataFrame(
-        [dict(row) for row in data]
-    )
+    df = pd.DataFrame([dict(row) for row in data])
 
     df.rename(
         columns={
@@ -67,65 +54,60 @@ def history():
         inplace=True,
     )
 
-    df["Confidence"] = (
-        df["Confidence"] * 100
-    ).round(2).astype(str) + "%"
+    # Process confidence for display
+    df["Confidence_Raw"] = df["Confidence"] # Keep numeric for filtering if needed
+    df["Confidence"] = (df["Confidence"] * 100).round(2).astype(str) + "%"
 
     # ----------------------------
-    # Search
+    # Search & Table (Glass Card)
     # ----------------------------
-
-    search = st.text_input(
-        "🔍 Search Traffic Sign"
-    )
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.subheader("🔍 Search & Records")
+    
+    search = st.text_input("Search Traffic Sign Name", placeholder="e.g. Stop, Speed Limit...")
 
     if search:
+        df = df[df["Traffic Sign"].str.contains(search, case=False, na=False)]
 
-        df = df[
-            df["Traffic Sign"].str.contains(
-                search,
-                case=False,
-                na=False
-            )
-        ]
-
-    # ----------------------------
-    # Table
-    # ----------------------------
-
+    # Display Table
     st.dataframe(
-        df,
-        use_container_width=True,
+        df[["ID", "Traffic Sign", "Confidence", "Prediction Time"]], 
+        use_container_width=True, 
         hide_index=True
     )
 
-    # ----------------------------
-    # Download CSV
-    # ----------------------------
-
+    # Download Button
     st.download_button(
-        label="📥 Download History (CSV)",
+        label="📥 Export to CSV",
         data=df.to_csv(index=False),
-        file_name="prediction_history.csv",
-        mime="text/csv"
+        file_name="traffic_sign_history.csv",
+        mime="text/csv",
+        use_container_width=True
     )
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # ----------------------------
-    # Delete Prediction
+    # Delete Prediction (Glass Card)
     # ----------------------------
+    st.markdown('<div class="card" style="border-left: 5px solid #ef4444;">', unsafe_allow_html=True)
+    st.subheader("🗑 Manage Records")
+    st.write("Enter a Prediction ID to permanently remove it from history.")
+    
+    del_col1, del_col2 = st.columns([2, 1])
+    
+    with del_col1:
+        prediction_id = st.number_input("Prediction ID", min_value=0, step=1, key="del_id")
+    
+    with del_col2:
+        st.write("<br>", unsafe_allow_html=True) # Alignment
+        if st.button("Delete Record", use_container_width=True):
+            if prediction_id > 0:
+                delete_prediction(prediction_id)
+                st.success(f"ID {prediction_id} deleted!")
+                st.rerun()
+            else:
+                st.warning("Please enter a valid ID.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.divider()
-
-    prediction_id = st.number_input(
-        "Enter Prediction ID to Delete",
-        min_value=1,
-        step=1
-    )
-
-    if st.button("🗑 Delete Prediction"):
-
-        delete_prediction(prediction_id)
-
-        st.success("Prediction Deleted Successfully!")
-
-        st.rerun()
+    # Footer
+    st.markdown('<div style="text-align:center; opacity:0.5; font-size:12px; margin-top:20px;">History Management System v1.0</div>', unsafe_allow_html=True)
