@@ -205,3 +205,17 @@ def dashboard():
     else:
 
         st.info("No recent predictions.")
+
+        st.divider()
+
+        st.markdown("""
+            <p style="text-align:center;">
+            Intelligent Traffic Sign Recognition System | Version 1.0 | Built using Streamlit, TensorFlow & SQLite
+            </p>
+            """, unsafe_allow_html=True)
+
+        st.markdown("""
+            <p style="text-align:center;">
+            This Project is built with ❤️ by Vimlesh !
+            </p>
+            """, unsafe_allow_html=True)
