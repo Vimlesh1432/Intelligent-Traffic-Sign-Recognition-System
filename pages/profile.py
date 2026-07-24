@@ -315,7 +315,7 @@ def profile():
         """
                 )
 
-                st.progress(min(row["count"] / 10, 1.0))
+                    st.progress(min(row["count"] / 10, 1.0))
 
             else:
 
