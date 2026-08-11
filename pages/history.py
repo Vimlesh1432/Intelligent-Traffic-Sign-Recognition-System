@@ -3,19 +3,18 @@ import pandas as pd
 
 from database import (
     get_prediction_history,
-    delete_prediction
+    delete_prediction,
 )
 
 def history():
     # --- Header Section ---
-    st.title("📜 Prediction History")
+    
     st.write("Browse, search, and manage your past traffic sign detections.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # ----------------------------
     # Load Data
     # ----------------------------
-    data = get_prediction_history(st.session_state.user["id"])
+    data = get_prediction_history()
 
     if not data:
         st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -63,7 +62,7 @@ def history():
     # ----------------------------
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("🔍 Search & Records")
-    
+
     search = st.text_input("Search Traffic Sign Name", placeholder="e.g. Stop, Speed Limit...")
 
     if search:
@@ -71,9 +70,9 @@ def history():
 
     # Display Table
     st.dataframe(
-        df[["ID", "Traffic Sign", "Confidence", "Prediction Time"]], 
-        use_container_width=True, 
-        hide_index=True
+        df[["ID", "Traffic Sign", "Confidence", "Prediction Time"]],
+        use_container_width=True,
+        hide_index=True,
     )
 
     # Download Button
@@ -82,7 +81,7 @@ def history():
         data=df.to_csv(index=False),
         file_name="traffic_sign_history.csv",
         mime="text/csv",
-        use_container_width=True
+        use_container_width=True,
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -92,12 +91,12 @@ def history():
     st.markdown('<div class="card" style="border-left: 5px solid #ef4444;">', unsafe_allow_html=True)
     st.subheader("🗑 Manage Records")
     st.write("Enter a Prediction ID to permanently remove it from history.")
-    
+
     del_col1, del_col2 = st.columns([2, 1])
-    
+
     with del_col1:
         prediction_id = st.number_input("Prediction ID", min_value=0, step=1, key="del_id")
-    
+
     with del_col2:
         st.write("<br>", unsafe_allow_html=True) # Alignment
         if st.button("Delete Record", use_container_width=True):

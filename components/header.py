@@ -1,8 +1,7 @@
 import streamlit as st
 
+
 def header():
-    # Wrap the entire header in a glass card
-    
     # Ab hum sirf ek column use karenge taaki title left mein rahe aur right side khali ho jaye
     st.markdown(
         """
@@ -17,5 +16,3 @@ def header():
         """,
         unsafe_allow_html=True
     )
-
-    st.markdown('</div>', unsafe_allow_html=True)

@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 from utils.predictor import predict
 from database import save_prediction
 
+
 def show_prediction(image, file_name):
     image_np = np.array(image)
 
@@ -27,9 +28,8 @@ def show_prediction(image, file_name):
             st.info("Please upload a clear image containing a traffic sign.")
             return
 
-    # Save to DB
+    # Save to DB (database.py ke hisab se: sirf sign_name, confidence, image_path)
     save_prediction(
-        user_id=st.session_state.user["id"],
         sign_name=sign_name,
         confidence=confidence,
         image_path=file_name
@@ -48,7 +48,7 @@ def show_prediction(image, file_name):
         st.metric("📊 Confidence", f"{confidence*100:.2f}%")
         st.progress(confidence)
         st.success("✅ Prediction Completed!")
-        
+
         prediction_id = str(uuid.uuid4())[:8]
         st.markdown(f"""
             <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; font-size:12px;">
@@ -60,7 +60,7 @@ def show_prediction(image, file_name):
 
     # ================= 2. Gauge & Top Predictions =================
     left, right = st.columns([1.2, 1])
-    
+
     with left:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.subheader("📊 AI Confidence Gauge")
@@ -70,7 +70,7 @@ def show_prediction(image, file_name):
             domain={'x': [0, 1], 'y': [0, 1]},
             gauge={
                 'axis': {'range': [0, 100], 'tickcolor': "white"},
-                'bar': {'color': "#3b82f6"},
+                'bar': {'color': "#C9184A"},
                 'bgcolor': "rgba(0,0,0,0)",
                 'borderwidth': 2,
                 'bordercolor': "white",
@@ -96,17 +96,20 @@ def show_prediction(image, file_name):
     # ================= 3. Summary Details =================
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("📋 Detailed Summary")
-    
+
     c1, c2 = st.columns(2)
     with c1:
         st.info(f"**📂 Category**\n\n{category}")
     with c2:
-        if risk == "High": st.error(f"**⚠️ Risk Level**\n\n{risk}")
-        elif risk == "Medium": st.warning(f"**⚠️ Risk Level**\n\n{risk}")
-        else: st.success(f"**⚠️ Risk Level**\n\n{risk}")
-    
+        if risk == "High":
+            st.error(f"**⚠️ Risk Level**\n\n{risk}")
+        elif risk == "Medium":
+            st.warning(f"**⚠️ Risk Level**\n\n{risk}")
+        else:
+            st.success(f"**⚠️ Risk Level**\n\n{risk}")
+
     st.markdown(f"""
-        <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; border-left: 5px solid #3b82f6; margin-top:10px;">
+        <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; border-left: 5px solid #C9184A; margin-top:10px;">
             <h4 style="margin:0;">🚗 Driver Action Required</h4>
             <p style="margin:5px 0 0 0;">{driver_action}</p>
         </div>
@@ -116,11 +119,11 @@ def show_prediction(image, file_name):
     """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+
 def detect():
     st.title("Traffic Sign Detection")
     st.write("Choose your input method below to start AI recognition.")
     option = st.radio("", ["📁 Upload Image", "📷 Webcam"], horizontal=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # --- Upload Logic ---
     if option == "📁 Upload Image":
@@ -128,7 +131,7 @@ def detect():
         uploaded_file = st.file_uploader("Choose an Image (JPG, PNG)", type=["jpg", "jpeg", "png"])
         if uploaded_file is not None:
             image = Image.open(uploaded_file).convert("RGB")
-            st.image(image, width=250)
+            
             if st.button("🔍 Run Prediction", use_container_width=True):
                 show_prediction(image, uploaded_file.name)
         st.markdown('</div>', unsafe_allow_html=True)

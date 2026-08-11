@@ -1,18 +1,15 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 from config import (
     APP_NAME,
     PAGE_TITLE,
     PAGE_ICON,
-    LAYOUT
+    LAYOUT,
 )
 
 from database import create_database
-from auth.login import login_page
-from auth.register import register_page
 
-from components.navbar import navbar
-from components.header import header
 from components.theme import apply_theme
 
 from pages.dashboard import dashboard
@@ -23,15 +20,63 @@ from pages.settings import settings
 from utils.helpers import load_css
 
 # ----------------------------
+# JS Bridge - nav click ko hidden radio click me convert karta hai.
+# Koi URL change nahi hota, isliye naya window/login page nahi khulta.
+# ----------------------------
+NAV_BRIDGE_JS = """
+<script>
+(function () {
+  var parent = window.parent;
+  if (!parent || !parent.document) return;
+
+  function hideNavRadio() {
+    // auth hat gaya hai, ab sirf ek hi radio hai (nav wala) - use hide karo
+    var radios = parent.document.querySelectorAll('[data-testid="stRadio"]');
+    for (var i = 0; i < radios.length; i++) {
+      radios[i].style.position = 'absolute';
+      radios[i].style.opacity = '0';
+      radios[i].style.pointerEvents = 'none';
+      radios[i].style.height = '0';
+      radios[i].style.overflow = 'hidden';
+    }
+  }
+
+  function handleClick(e) {
+    var el = e.target;
+    var btn = el && el.closest ? el.closest('.nav-btn') : null;
+    if (!btn) return;
+    e.preventDefault();
+    var pageName = btn.getAttribute('data-page');
+    if (!pageName) return;
+    var labels = parent.document.querySelectorAll('[data-testid="stRadio"] label');
+    for (var i = 0; i < labels.length; i++) {
+      if ((labels[i].textContent || '').trim() === pageName) {
+        var input = labels[i].querySelector('input');
+        if (input) { input.click(); } else { labels[i].click(); }
+        break;
+      }
+    }
+  }
+
+  hideNavRadio();
+  // listener sirf ek baar bind karo (har rerun par naya iframe banta hai)
+  if (!parent.__tsrNavBound) {
+    parent.__tsrNavBound = true;
+    parent.document.addEventListener('click', handleClick, true);
+  }
+})();
+</script>
+"""
+
+# ----------------------------
 # Page Configuration
 # ----------------------------
 
 st.set_page_config(
     page_title=PAGE_TITLE,
     page_icon=PAGE_ICON,
-    layout=LAYOUT
+    layout=LAYOUT,
 )
-
 
 load_css("assets/css/style.css")
 apply_theme()
@@ -42,69 +87,97 @@ apply_theme()
 
 create_database()
 
-
 # ----------------------------
-# Session State
-# ----------------------------
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-if "user" not in st.session_state:
-    st.session_state.user = None
-
-
-
-
-# ----------------------------
-# Authentication
+# Navigation State
 # ----------------------------
 
-if not st.session_state.logged_in:
+PAGES = ["Dashboard", "Detect", "History", "Profile", "Settings"]
+NAV_ICONS = {
+    "Dashboard": "fa-house",
+    "Detect": "fa-camera",
+    "History": "fa-clock",
+    "Profile": "fa-user",
+    "Settings": "fa-gear",
+}
 
-    option = st.radio(
-        "",
-        ["🔐 Login", "📝 Register"],
-        horizontal=True
-    )
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "Dashboard"
 
-    st.divider()
-
-    if option == "🔐 Login":
-        login_page()
-    else:
-        register_page()
+# True current page = hidden radio ka session value (key="nav"),
+# warna pehla load par current_page — isse active pill kabhi lag nahi karegi
+current = st.session_state.get("nav", st.session_state.get("current_page", "Dashboard"))
+if current not in PAGES:
+    current = "Dashboard"
+st.session_state.current_page = current
 
 # ----------------------------
-# Main Application
+# Glassmorphism header: logo left + nav right
 # ----------------------------
 
-else:
+st.markdown(
+    f"""
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* ---- Underline fix: header ke har element se underline / bottom border hatao ---- */
+        .app-header a,
+        .app-header .nav-btn,
+        .app-header .nav-btn *,
+        .app-header .brand,
+        .app-header .brand * {{
+            text-decoration: none !important;
+            border-bottom: none !important;
+        }}
+        .app-header a:hover,
+        .app-header .nav-btn:hover,
+        .app-header .nav-btn.active,
+        .app-header .nav-btn.active * {{
+            text-decoration: none !important;
+            border-bottom: none !important;
+        }}
+    </style>
+    <div class="app-header">
+        <div class="brand">
+            <span class="brand-logo">🚦</span>
+            <span class="brand-name">Traffic<span>AI</span></span>
+        </div>
+        <nav class="header-nav">
+            {''.join(
+                f'<a class="nav-btn{" active" if p == current else ""}" '
+                f'href="#" data-page="{p}" style="text-decoration: none !important;">'
+                f'<i class="fa-solid {NAV_ICONS[p]}"></i><span class="nav-label">{p}</span></a>'
+                for p in PAGES
+            )}
+        </nav>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-    # Header
-    header()
+# ---- Hidden radio (page state) - JS ise click karta hai ----
+page = st.radio(
+    "",
+    PAGES,
+    horizontal=True,
+    index=PAGES.index(current),
+    key="nav",
+    label_visibility="collapsed",
+)
+st.session_state.current_page = page
 
-    # Navbar
-    selected = navbar()
+# ---- JS bridge (invisible) ----
+components.html(NAV_BRIDGE_JS, height=0)
 
-    # Pages
-    if selected == "Dashboard":
-        dashboard()
+# ----------------------------
+# Page routing
+# ----------------------------
 
-    elif selected == "Detect":
-        detect()
-
-    elif selected == "History":
-        history()
-
-    elif selected == "Profile":
-        profile()
-
-    elif selected == "Settings":
-        settings()
-
-    elif selected == "Logout":
-
-        st.session_state.logged_in = False
-        st.session_state.user = None
-        st.rerun()
+if page == "Dashboard":
+    dashboard()
+elif page == "Detect":
+    detect()
+elif page == "History":
+    history()
+elif page == "Profile":
+    profile()
+elif page == "Settings":
+    settings()

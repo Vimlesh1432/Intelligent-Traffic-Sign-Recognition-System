@@ -1,4 +1,22 @@
 /* -----------------------------------------------------------
+   Burgundy Color Grading — unique wine theme
+   --accent       : #C9184A  (burgundy-rose)
+   --accent-bright: #E5383B  (bright highlight)
+   --accent-deep  : #800020  (classic burgundy)
+   ----------------------------------------------------------- */
+:root {
+    --accent: #e2d5d8;
+    --accent-bright: #e4d5d5;
+    --accent-deep: #ba8995;
+    --accent-dim: rgba(248, 16, 82, 0.16);
+    --accent-border: rgba(198, 154, 166, 0.38);
+    --accent-glow: rgba(219, 175, 188, 0.296);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.78);
+    --transition-fast: 0.25s ease;
+}
+
+/* -----------------------------------------------------------
    Global Fixes & Branding Removal
    ----------------------------------------------------------- */
 #MainMenu, footer, header { visibility: hidden; }
@@ -8,20 +26,27 @@
     font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-/* -----------------------------------------------------------
-   Main Adaptive App Background
-   ----------------------------------------------------------- */
+/* Horizontal scroll jitter rokta hai (scrollbar aane/jane se layout shift) */
+html, body, .stApp {
+    overflow-x: hidden;
+}
 
-/* Global Adaptive Background */
+/* -----------------------------------------------------------
+   Main Adaptive App Background — deep blue image + burgundy tint
+   ----------------------------------------------------------- */
 .stApp {
-    background-image: url("https://sc04.alicdn.com/kf/A33c85ce40251421493dbd9d0c8555dbbg.jpg");
+    background-image:
+        linear-gradient(160deg, rgba(209, 169, 181, 0.72), rgba(188, 160, 197, 0.85)),
+        url("https://sc04.alicdn.com/kf/A33c85ce40251421493dbd9d0c8555dbbg.jpg");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     color: #ffffff;
+    /* Scrollbar ki jagah hamesha reserve rahe => resize par content na kude */
+    scrollbar-gutter: stable;
 }
 
-/* Glass Card Wrapper */
+/* Glass Card Wrapper — Streamlit ke default backgrounds hatayein */
 div[data-testid="stVerticalBlock"] > div {
     background: none !important;
     backdrop-filter: none !important;
@@ -29,30 +54,42 @@ div[data-testid="stVerticalBlock"] > div {
     box-shadow: none !important;
 }
 
-/* Sirf manual card class ko style karein */
+/* -----------------------------------------------------------
+   Card (burgundy glass + fluid layout)
+   ----------------------------------------------------------- */
 .card {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(222, 177, 190, 0.07) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
-    border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 5px !important;
-    padding: 0.15rem !important;
+    border: 0.5px solid rgba(201, 24, 74, 0.22) !important;
+    border-radius: 14px !important;
+    /* Fluid padding: chhoti screen par kam, badi par zyada (inline padding:15px override kar sakta hai) */
+    padding: clamp(0.2rem, 0.2vw, 0.1rem);
     margin-bottom: 0.8rem !important;
     width: 100% !important;
-    display: -moz-grid-line !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0) !important;
+    max-width: 100% !important;
+    /* Fix: invalid "-moz-grid-line" ki jagah valid display */
+    display: block !important;
+    overflow-wrap: break-word;
+    box-shadow: 0 8px 32px 0 rgba(128, 0, 32, 0.28) !important;
 }
 
-/* Metrics ko alag se style karein */
+.card:hover {
+    background: rgba(201, 24, 74, 0.12) !important;
+    transform: translateY(-1px);
+}
+
+/* Metrics glass cards (burgundy) */
 [data-testid="metric-container"] {
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(201, 24, 74, 0.07) !important;
     backdrop-filter: blur(10px) !important;
-    border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 12px !important;
-    padding: 15px !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 0.5px solid rgba(201, 24, 74, 0.2) !important;
+    border-radius: 14px !important;
+    padding: clamp(0.75rem, 1.5vw, 1.1rem) !important;
 }
 
-/* Streamlit Dividers (Ghost lines) ko hide karein */
+/* Streamlit Dividers (Ghost lines) hide */
 hr {
     border: none !important;
     height: 0px !important;
@@ -60,59 +97,188 @@ hr {
     padding: 0px !important;
 }
 
-.card:hover {
-    background: rgba(255, 255, 255, 0.08) !important;
-    transform: translateY(-1px);
+/* -----------------------------------------------------------
+   Responsive Columns — window chhota/bada karne par elements
+   apne aap stack ho jayenge, idhar-udhar nahi bhatkenge
+   ----------------------------------------------------------- */
+div[data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap !important;
 }
 
-/* Metrics Adaptive Style */
-[data-testid="metric-container"] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 15px !important;
+div[data-testid="stHorizontalBlock"] > div {
+    min-width: 0 !important;    /* content ko overflow hone se roko */
+    max-width: 100% !important;
 }
 
-/* Scrollbar & Table Fix for Responsiveness */
-.stDataFrame, .stPlotlyChart {
-    width: 100% !important;
+/* Tablet (641–1100px): har row mein max 2 columns */
+@media (max-width: 1100px) and (min-width: 641px) {
+    div[data-testid="stHorizontalBlock"] > div {
+        flex: 1 1 45% !important;
+    }
 }
 
-/* Mobile Adjustments */
-@media (max-width: 768px) {
-    .card { padding: 10px !important; }
+/* Mobile (<=640px): sab kuch stack (1 column) */
+@media (max-width: 640px) {
+    div[data-testid="stHorizontalBlock"] > div {
+        flex: 1 1 100% !important;
+    }
+}
+
+/* Images kabhi bhi container se bahar na niklein */
+img {
+    max-width: 100%;
+    height: auto;
 }
 
 /* -----------------------------------------------------------
    Charts & Dataframes (Adaptive Width)
    ----------------------------------------------------------- */
+.stDataFrame, .stPlotlyChart {
+    width: 100% !important;
+}
+
 .stPlotlyChart, .stDataFrame {
     width: 100% !important;
     border-radius: 15px;
     overflow: hidden;
 }
 
-/* Hide horizontal scroll in dataframe */
 div[data-testid="stTable"] {
     width: 100% !important;
     background: transparent !important;
+    overflow-x: auto !important;
 }
 
-
-/* IFrame (Navbar Container) ko transparent banane ke liye */
+/* IFrame (Navbar Container) transparent */
 iframe[title="streamlit_option_menu.option_menu"] {
     background: transparent !important;
     background-color: transparent !important;
     border: none !important;
 }
 
-
-/* Kisi bhi extra spacing box ko hatane ke liye jo Streamlit khud banata hai */
 div[data-testid="stHtml"] {
     background: transparent !important;
 }
 
-/* Global Reset for any unintended markdown cards that catch the navbar */
 div[data-testid="stMarkdownContainer"] {
     background: transparent !important;
+}
+
+/* -----------------------------------------------------------
+   Glassmorphism Header — burgundy, stable on resize
+   ----------------------------------------------------------- */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;                     /* resize par kabhi wrap nahi - ek hi row */
+    gap: 14px 20px;
+    padding: clamp(10px, 1.5vw, 16px) clamp(14px, 2vw, 24px);
+    margin-bottom: 20px;
+    border-radius: 14px;
+    background: rgba(201, 24, 74, 0.08);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid rgba(201, 24, 74, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 32px rgba(128, 0, 32, 0.35);
+    position: sticky;
+    top: 12px;
+    z-index: 100;
+    width: 100%;
+    max-width: 100%;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.brand-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: linear-gradient(135deg, rgba(201, 24, 74, 0.32), rgba(128, 0, 32, 0.1));
+    border: 1px solid rgba(145, 105, 68, 0.45);
+    box-shadow: 0 0 16px rgba(201, 24, 74, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.brand-name {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: #e2e6ea;
+    white-space: nowrap;
+}
+
+.brand-name span { color: rgb(196, 151, 238); }
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;        /* resize par kabhi wrap nahi - ek hi row */
+    justify-content: flex-end;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;         /* bahut narrow -> nav scroll ho jati hai */
+    scrollbar-width: thin;
+}
+
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;           /* pills shrink nahi hongi */
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.nav-btn i { font-size: 0.7rem; }
+
+.nav-btn:hover {
+    background: rgba(201, 24, 74, 0.14);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.nav-btn.active {
+    background: var(--accent-dim);
+    border-color: rgba(238, 217, 218, 0.5);
+    color: #e08596;
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* Logout button - red accent (semantic, rakh rahe hain) */
+.nav-btn.logout:hover,
+.nav-btn.logout.active {
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.08);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.12);
+}
+
+/* Chhoti window: labels chhupao -> icon-only pills, layout waise hi rahega */
+@media (max-width: 720px) {
+    .nav-btn .nav-label { display: none; }
+    .nav-btn { padding: 8px 12px; }
+}
+
+/* Bahut chhoti: brand text chhupao, sirf logo */
+@media (max-width: 480px) {
+    .brand-name { display: none; }
 }

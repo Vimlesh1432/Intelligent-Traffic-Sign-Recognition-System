@@ -1,6 +1,5 @@
 import sqlite3
 from datetime import datetime
-import bcrypt
 
 from config import DATABASE_NAME
 
@@ -22,122 +21,48 @@ def create_database():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # ================= USERS =================
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users(
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        username TEXT NOT NULL,
-
-        email TEXT UNIQUE NOT NULL,
-
-        password TEXT NOT NULL,
-
-        created_at TEXT NOT NULL
-
-    )
-    """)
-
     # ================= PREDICTION HISTORY =================
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS detection_history(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
         sign_name TEXT NOT NULL,
         confidence REAL NOT NULL,
         image_path TEXT NOT NULL,
-        prediction_time TEXT NOT NULL,
-        FOREIGN KEY(user_id) REFERENCES users(id)
+        prediction_time TEXT NOT NULL
     )
     """)
 
-    conn.commit()
-    conn.close()
+    # Migration: purani DB (auth wali) me user_id column ho toh usko
+    # data ke saath nayi clean table me convert karo
+    columns = [row[1] for row in cursor.execute(
+        "PRAGMA table_info(detection_history)"
+    ).fetchall()]
 
-def register_user(username, email, password):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT * FROM users WHERE email=?",
-        (email,)
-    )
-
-    if cursor.fetchone():
-
-        conn.close()
-
-        return False, "Email already exists."
-
-    hashed_password = bcrypt.hashpw(
-        password.encode(),
-        bcrypt.gensalt()
-    ).decode()
-
-    cursor.execute("""
-
-    INSERT INTO users(
-        username,
-        email,
-        password,
-        created_at
-    )
-
-    VALUES(?,?,?,?)
-
-    """, (
-
-        username,
-        email,
-        hashed_password,
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    ))
+    if "user_id" in columns:
+        cursor.execute("DROP TABLE IF EXISTS detection_history_old")
+        cursor.execute("ALTER TABLE detection_history RENAME TO detection_history_old")
+        cursor.execute("""
+            CREATE TABLE detection_history(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sign_name TEXT NOT NULL,
+                confidence REAL NOT NULL,
+                image_path TEXT NOT NULL,
+                prediction_time TEXT NOT NULL
+            )
+        """)
+        cursor.execute("""
+            INSERT INTO detection_history (id, sign_name, confidence, image_path, prediction_time)
+            SELECT id, sign_name, confidence, image_path, prediction_time
+            FROM detection_history_old
+        """)
+        cursor.execute("DROP TABLE detection_history_old")
 
     conn.commit()
     conn.close()
 
-    return True, "Registration Successful."
 
-def login_user(email, password):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-
-        "SELECT * FROM users WHERE email=?",
-
-        (email,)
-
-    )
-
-    user = cursor.fetchone()
-
-    conn.close()
-
-    if user is None:
-
-        return False, "User not found."
-
-    if bcrypt.checkpw(
-
-        password.encode(),
-
-        user["password"].encode()
-
-    ):
-
-        return True, dict(user)
-
-    return False, "Incorrect Password."
-
-
-def get_prediction_history(user_id):
+def get_prediction_history():
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -150,9 +75,8 @@ def get_prediction_history(user_id):
             image_path,
             prediction_time
         FROM detection_history
-        WHERE user_id=?
         ORDER BY id DESC
-    """, (user_id,))
+    """)
 
     data = cursor.fetchall()
 
@@ -175,22 +99,31 @@ def delete_prediction(prediction_id):
     conn.close()
 
 
-def save_prediction(user_id, sign_name, confidence, image_path):
+def clear_all_history():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM detection_history")
+
+    conn.commit()
+    conn.close()
+
+
+def save_prediction(sign_name, confidence, image_path):
 
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
         INSERT INTO detection_history(
-            user_id,
             sign_name,
             confidence,
             image_path,
             prediction_time
         )
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?)
     """, (
-        user_id,
         sign_name,
         confidence,
         image_path,
@@ -200,7 +133,8 @@ def save_prediction(user_id, sign_name, confidence, image_path):
     conn.commit()
     conn.close()
 
-def get_total_predictions(user_id):
+
+def get_total_predictions():
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -209,9 +143,7 @@ def get_total_predictions(user_id):
         """
         SELECT COUNT(*)
         FROM detection_history
-        WHERE user_id=?
-        """,
-        (user_id,)
+        """
     )
 
     total = cursor.fetchone()[0]
@@ -221,7 +153,7 @@ def get_total_predictions(user_id):
     return total
 
 
-def get_today_predictions(user_id):
+def get_today_predictions():
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -230,10 +162,8 @@ def get_today_predictions(user_id):
         """
         SELECT COUNT(*)
         FROM detection_history
-        WHERE user_id=?
-        AND DATE(prediction_time)=DATE('now')
-        """,
-        (user_id,)
+        WHERE DATE(prediction_time)=DATE('now')
+        """
     )
 
     total = cursor.fetchone()[0]
@@ -243,7 +173,7 @@ def get_today_predictions(user_id):
     return total
 
 
-def get_average_confidence(user_id):
+def get_average_confidence():
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -252,9 +182,7 @@ def get_average_confidence(user_id):
         """
         SELECT AVG(confidence)
         FROM detection_history
-        WHERE user_id=?
-        """,
-        (user_id,)
+        """
     )
 
     value = cursor.fetchone()[0]
@@ -267,8 +195,7 @@ def get_average_confidence(user_id):
     return round(value * 100, 2)
 
 
-
-def get_sign_distribution(user_id):
+def get_sign_distribution():
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -278,10 +205,9 @@ def get_sign_distribution(user_id):
             sign_name,
             COUNT(*) as total
         FROM detection_history
-        WHERE user_id=?
         GROUP BY sign_name
         ORDER BY total DESC
-    """, (user_id,))
+    """)
 
     data = cursor.fetchall()
 
@@ -289,7 +215,8 @@ def get_sign_distribution(user_id):
 
     return data
 
-def get_recent_predictions(user_id):
+
+def get_recent_predictions(limit=5):
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -300,10 +227,9 @@ def get_recent_predictions(user_id):
             confidence,
             prediction_time
         FROM detection_history
-        WHERE user_id=?
         ORDER BY id DESC
-        LIMIT 5
-    """, (user_id,))
+        LIMIT ?
+    """, (limit,))
 
     data = cursor.fetchall()
 
@@ -312,7 +238,7 @@ def get_recent_predictions(user_id):
     return data
 
 
-def get_weekly_predictions(user_id):
+def get_weekly_predictions():
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -322,11 +248,10 @@ def get_weekly_predictions(user_id):
             DATE(prediction_time),
             COUNT(*)
         FROM detection_history
-        WHERE user_id=?
         GROUP BY DATE(prediction_time)
         ORDER BY DATE(prediction_time) DESC
         LIMIT 7
-    """, (user_id,))
+    """)
 
     data = cursor.fetchall()
 
@@ -335,7 +260,7 @@ def get_weekly_predictions(user_id):
     return data
 
 
-def get_top_signs(user_id):
+def get_top_signs(limit=5):
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -345,11 +270,10 @@ def get_top_signs(user_id):
             sign_name,
             COUNT(*) AS count
         FROM detection_history
-        WHERE user_id=?
         GROUP BY sign_name
         ORDER BY count DESC
-        LIMIT 5
-    """, (user_id,))
+        LIMIT ?
+    """, (limit,))
 
     data = cursor.fetchall()
 
@@ -358,7 +282,7 @@ def get_top_signs(user_id):
     return data
 
 
-def get_best_prediction(user_id):
+def get_best_prediction():
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -369,10 +293,9 @@ def get_best_prediction(user_id):
             confidence,
             prediction_time
         FROM detection_history
-        WHERE user_id=?
         ORDER BY confidence DESC
         LIMIT 1
-    """, (user_id,))
+    """)
 
     data = cursor.fetchone()
 

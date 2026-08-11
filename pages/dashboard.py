@@ -1,3 +1,4 @@
+"""Dashboard page."""
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -10,29 +11,32 @@ from database import (
     get_recent_predictions,
     get_weekly_predictions,
     get_top_signs,
-    get_best_prediction
+    get_best_prediction,
 )
+
 
 def dashboard():
     # --- Header Wrapper ---
     st.markdown('<div class="glass-panel" style="text-align:center;">', unsafe_allow_html=True)
-    st.success(f"👋 Welcome back, {st.session_state.user['username']}")
+    st.success("👋 Welcome back!")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    user_id = st.session_state.user["id"]
-
     # ================= Database Data =================
-    total_predictions = get_total_predictions(user_id)
-    today_predictions = get_today_predictions(user_id)
-    average_confidence = get_average_confidence(user_id)
+    total_predictions = get_total_predictions()
+    today_predictions = get_today_predictions()
+    average_confidence = get_average_confidence()
 
     # ================= Metrics (Adaptive Row) =================
     st.markdown('<div class="card">', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
-    with c1: st.metric("Predictions", total_predictions)
-    with c2: st.metric("Average Confidence", f"{average_confidence}%")
-    with c3: st.metric("Today's Scan", today_predictions)
-    with c4: st.metric("Traffic Signs", 43)
+    with c1:
+        st.metric("Predictions", total_predictions)
+    with c2:
+        st.metric("Average Confidence", f"{average_confidence}%")
+    with c3:
+        st.metric("Today's Scan", today_predictions)
+    with c4:
+        st.metric("Traffic Signs", 43)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -52,7 +56,7 @@ def dashboard():
     # -------- Weekly Prediction Chart --------
     with left:
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        weekly = get_weekly_predictions(user_id)
+        weekly = get_weekly_predictions()
         if weekly:
             df = pd.DataFrame(weekly, columns=["Day", "Predictions"])
             fig = px.bar(df, x="Day", y="Predictions", title="Weekly Predictions")
@@ -64,7 +68,7 @@ def dashboard():
     # -------- Traffic Sign Distribution --------
     with right:
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        distribution = get_sign_distribution(user_id)
+        distribution = get_sign_distribution()
         if distribution:
             pie = pd.DataFrame(distribution, columns=["Traffic Sign", "Count"])
             fig2 = px.pie(pie, names="Traffic Sign", values="Count", title="Sign Distribution")
@@ -76,12 +80,15 @@ def dashboard():
     # ================= Highest Confidence =================
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("🏆 Highest Confidence Prediction")
-    best = get_best_prediction(user_id)
+    best = get_best_prediction()
     if best:
         col1, col2, col3 = st.columns(3)
-        with col1: st.metric("🚦 Traffic Sign", best["sign_name"])
-        with col2: st.metric("📊 Confidence", f"{best['confidence']*100:.2f}%")
-        with col3: st.metric("🕒 Time", best["prediction_time"])
+        with col1:
+            st.metric("🚦 Traffic Sign", best["sign_name"])
+        with col2:
+            st.metric("📊 Confidence", f"{best['confidence']*100:.2f}%")
+        with col3:
+            st.metric("🕒 Time", best["prediction_time"])
     else:
         st.info("No prediction available.")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -89,7 +96,7 @@ def dashboard():
     # ================= Top Traffic Signs =================
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("🔥 Top 5 Detected Traffic Signs")
-    top = get_top_signs(user_id)
+    top = get_top_signs()
     if top:
         top_df = pd.DataFrame(top, columns=["Traffic Sign", "Count"])
         fig3 = px.bar(top_df, x="Count", y="Traffic Sign", orientation="h", title="")
@@ -101,7 +108,7 @@ def dashboard():
     # ================= Recent Predictions =================
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("📜 Recent Predictions")
-    recent = get_recent_predictions(user_id)
+    recent = get_recent_predictions()
     if recent:
         history = pd.DataFrame(recent, columns=["Traffic Sign", "Confidence", "Prediction Time"])
         history["Confidence"] = (history["Confidence"] * 100).round(2).astype(str) + "%"
