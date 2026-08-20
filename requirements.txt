@@ -1,7 +1,7 @@
-pip install tensorflow
-pip install opencv-python
-pip install numpy
-pip install pandas
-pip install matplotlib
-pip install scikit-learn
-pip install streamlit
+tensorflow
+opencv-python
+numpy
+pandas
+matplotlib
+scikit-learn
+streamlit
