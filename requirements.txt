@@ -1,6 +1,6 @@
-tensorflow
-opencv-python
-numpy
+tensorflow==2.21.0
+opencv-python-headless
+numpy==2.4.6
 pandas
 matplotlib
 scikit-learn
