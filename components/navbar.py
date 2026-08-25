@@ -105,17 +105,45 @@ NAVBAR_HTML = """
     var parent = window.parent;
     if (!parent || !parent.document) return;
 
-    /* Hidden radio ko hide karo (position/opacity trick) */
-    var radios = parent.document.querySelectorAll('[data-testid="stRadio"]');
-    for (var i = 0; i < radios.length; i++) {
-        radios[i].style.position = 'absolute';
-        radios[i].style.opacity = '0';
-        radios[i].style.pointerEvents = 'none';
-        radios[i].style.height = '0';
-        radios[i].style.overflow = 'hidden';
+    /* Sab radios dhundho - light DOM + shadow DOM dono mein (naye Streamlit versions) */
+    function findRadios(root) {
+        var found = [];
+        var list = root.querySelectorAll('[data-testid="stRadio"]');
+        for (var i = 0; i < list.length; i++) found.push(list[i]);
+        var hosts = root.querySelectorAll('*');
+        for (var j = 0; j < hosts.length; j++) {
+            var sr = hosts[j].shadowRoot;
+            if (sr) found = found.concat(findRadios(sr));
+        }
+        return found;
+    }
+
+    /* Sirf PEHLA radio (nav wala) hide karo - page ke doosre radios visible rahenge */
+    function hideNavRadio() {
+        var radios = findRadios(parent.document);
+        if (!radios.length) return;
+        var r = radios[0];
+        r.style.position = 'absolute';
+        r.style.opacity = '0';
+        r.style.pointerEvents = 'none';
+        r.style.height = '0';
+        r.style.overflow = 'hidden';
     }
 
     /* Nav click -> matching hidden radio click */
+    function clickNavRadio(pageName) {
+        var radios = findRadios(parent.document);
+        if (!radios.length) return;
+        var labels = radios[0].querySelectorAll('label');
+        for (var j = 0; j < labels.length; j++) {
+            if ((labels[j].textContent || '').trim() === pageName) {
+                var input = labels[j].querySelector('input');
+                if (input) input.click(); else labels[j].click();
+                break;
+            }
+        }
+    }
+
     var nav = document.querySelector('.stable-nav');
     if (nav) {
         nav.addEventListener('click', function (e) {
@@ -123,16 +151,24 @@ NAVBAR_HTML = """
             if (!btn) return;
             e.preventDefault();
             var pageName = btn.getAttribute('data-page');
-            if (!pageName) return;
-            var labels = parent.document.querySelectorAll('[data-testid="stRadio"] label');
-            for (var j = 0; j < labels.length; j++) {
-                if ((labels[j].textContent || '').trim() === pageName) {
-                    var input = labels[j].querySelector('input');
-                    if (input) input.click(); else labels[j].click();
-                    break;
-                }
-            }
+            if (pageName) clickNavRadio(pageName);
         });
+    }
+
+    /* 1) Turant hide */
+    hideNavRadio();
+
+    /* 2) MutationObserver - radio baad mein render ho to bhi hide ho jayega
+       (Community Cloud slow load fix) */
+    if (parent.__tsrObs) parent.__tsrObs.disconnect();
+    try {
+        parent.__tsrObs = new MutationObserver(function () { hideNavRadio(); });
+        parent.__tsrObs.observe(parent.document.body || parent.document.documentElement, { childList: true, subtree: true });
+    } catch (e) {}
+
+    /* 3) Fallback polling */
+    if (!parent.__tsrNavTimer) {
+        parent.__tsrNavTimer = setInterval(hideNavRadio, 400);
     }
 })();
 </script>

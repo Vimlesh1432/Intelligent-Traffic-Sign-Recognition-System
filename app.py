@@ -29,26 +29,35 @@ NAV_BRIDGE_JS = """
   var parent = window.parent;
   if (!parent || !parent.document) return;
 
-  function hideNavRadio() {
-    // auth hat gaya hai, ab sirf ek hi radio hai (nav wala) - use hide karo
-    var radios = parent.document.querySelectorAll('[data-testid="stRadio"]');
-    for (var i = 0; i < radios.length; i++) {
-      radios[i].style.position = 'absolute';
-      radios[i].style.opacity = '0';
-      radios[i].style.pointerEvents = 'none';
-      radios[i].style.height = '0';
-      radios[i].style.overflow = 'hidden';
+  // Sab radios dhundho - light DOM + shadow DOM dono mein (naye Streamlit versions)
+  function findRadios(root) {
+    var found = [];
+    var list = root.querySelectorAll('[data-testid="stRadio"]');
+    for (var i = 0; i < list.length; i++) found.push(list[i]);
+    var hosts = root.querySelectorAll('*');
+    for (var j = 0; j < hosts.length; j++) {
+      var sr = hosts[j].shadowRoot;
+      if (sr) found = found.concat(findRadios(sr));
     }
+    return found;
   }
 
-  function handleClick(e) {
-    var el = e.target;
-    var btn = el && el.closest ? el.closest('.nav-btn') : null;
-    if (!btn) return;
-    e.preventDefault();
-    var pageName = btn.getAttribute('data-page');
-    if (!pageName) return;
-    var labels = parent.document.querySelectorAll('[data-testid="stRadio"] label');
+  // Sirf PEHLA radio (nav wala) hide karo - Detect page ka radio visible rahega
+  function hideNavRadio() {
+    var radios = findRadios(parent.document);
+    if (!radios.length) return;
+    var r = radios[0];
+    r.style.position = 'absolute';
+    r.style.opacity = '0';
+    r.style.pointerEvents = 'none';
+    r.style.height = '0';
+    r.style.overflow = 'hidden';
+  }
+
+  function clickNavRadio(pageName) {
+    var radios = findRadios(parent.document);
+    if (!radios.length) return;
+    var labels = radios[0].querySelectorAll('label');
     for (var i = 0; i < labels.length; i++) {
       if ((labels[i].textContent || '').trim() === pageName) {
         var input = labels[i].querySelector('input');
@@ -58,8 +67,33 @@ NAV_BRIDGE_JS = """
     }
   }
 
+  function handleClick(e) {
+    var el = e.target;
+    var btn = el && el.closest ? el.closest('.nav-btn') : null;
+    if (!btn) return;
+    e.preventDefault();
+    var pageName = btn.getAttribute('data-page');
+    if (pageName) clickNavRadio(pageName);
+  }
+
+  // 1) Turant hide
   hideNavRadio();
-  // listener sirf ek baar bind karo (har rerun par naya iframe banta hai)
+
+  // 2) MutationObserver - radio baad mein render ho to bhi hide ho jayega.
+  //    Community Cloud par load slow hai, isliye script radio se pehle chal
+  //    jaati thi aur radio dikhne lagta tha - yahi bug tha.
+  if (parent.__tsrObs) parent.__tsrObs.disconnect();
+  try {
+    parent.__tsrObs = new MutationObserver(function () { hideNavRadio(); });
+    parent.__tsrObs.observe(parent.document.body || parent.document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
+
+  // 3) Fallback polling (agar MutationObserver unsupported ho)
+  if (!parent.__tsrNavTimer) {
+    parent.__tsrNavTimer = setInterval(hideNavRadio, 400);
+  }
+
+  // Click bridge sirf ek baar bind karo (har rerun par naya iframe banta hai)
   if (!parent.__tsrNavBound) {
     parent.__tsrNavBound = true;
     parent.document.addEventListener('click', handleClick, true);
