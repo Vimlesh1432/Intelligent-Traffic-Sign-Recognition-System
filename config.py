@@ -29,3 +29,5 @@ PAGE_TITLE = "Traffic Sign Recognition"
 PAGE_ICON = "🚦"
 
 LAYOUT = "wide"
+
+

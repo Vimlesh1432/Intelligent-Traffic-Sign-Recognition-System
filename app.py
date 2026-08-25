@@ -12,11 +12,11 @@ from database import create_database
 
 from components.theme import apply_theme
 
-from pages.dashboard import dashboard
-from pages.detect import detect
-from pages.history import history
-from pages.profile import profile
-from pages.settings import settings
+from views.dashboard import dashboard
+from views.detect import detect
+from views.history import history
+from views.profile import profile
+from views.settings import settings
 from utils.helpers import load_css
 
 # ----------------------------
