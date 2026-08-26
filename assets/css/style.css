@@ -19,14 +19,15 @@
 /* -----------------------------------------------------------
    Global Fixes & Branding Removal
    ----------------------------------------------------------- */
-#MainMenu, footer, header { visibility: hidden; }
+#MainMenu, footer, header { 
+    visibility: hidden; 
+}
 
 * {
     box-sizing: border-box;
     font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-/* Horizontal scroll jitter rokta hai (scrollbar aane/jane se layout shift) */
 html, body, .stApp {
     overflow-x: hidden;
 }
@@ -42,11 +43,9 @@ html, body, .stApp {
     background-position: center;
     background-attachment: fixed;
     color: #ffffff;
-    /* Scrollbar ki jagah hamesha reserve rahe => resize par content na kude */
     scrollbar-gutter: stable;
 }
 
-/* Glass Card Wrapper — Streamlit ke default backgrounds hatayein */
 div[data-testid="stVerticalBlock"] > div {
     background: none !important;
     backdrop-filter: none !important;
@@ -63,12 +62,10 @@ div[data-testid="stVerticalBlock"] > div {
     -webkit-backdrop-filter: blur(12px) !important;
     border: 0.5px solid rgba(201, 24, 74, 0.22) !important;
     border-radius: 14px !important;
-    /* Fluid padding: chhoti screen par kam, badi par zyada (inline padding:15px override kar sakta hai) */
     padding: clamp(0.2rem, 0.2vw, 0.1rem);
     margin-bottom: 0.8rem !important;
     width: 100% !important;
     max-width: 100% !important;
-    /* Fix: invalid "-moz-grid-line" ki jagah valid display */
     display: block !important;
     overflow-wrap: break-word;
     box-shadow: 0 8px 32px 0 rgba(128, 0, 32, 0.28) !important;
@@ -97,34 +94,32 @@ hr {
     padding: 0px !important;
 }
 
-/* -----------------------------------------------------------
-   Responsive Columns — window chhota/bada karne par elements
-   apne aap stack ho jayenge, idhar-udhar nahi bhatkenge
-   ----------------------------------------------------------- */
+/* -------------------------------------------------
+   Responsive Columns
+   ------------------------------------------------- */
 div[data-testid="stHorizontalBlock"] {
     flex-wrap: wrap !important;
 }
 
 div[data-testid="stHorizontalBlock"] > div {
-    min-width: 0 !important;    /* content ko overflow hone se roko */
+    min-width: 0 !important;    
     max-width: 100% !important;
 }
 
-/* Tablet (641–1100px): har row mein max 2 columns */
+/* Tablet (641–1100px) */
 @media (max-width: 1100px) and (min-width: 641px) {
     div[data-testid="stHorizontalBlock"] > div {
         flex: 1 1 45% !important;
     }
 }
 
-/* Mobile (<=640px): sab kuch stack (1 column) */
+/* Mobile (<=640px) */
 @media (max-width: 640px) {
     div[data-testid="stHorizontalBlock"] > div {
         flex: 1 1 100% !important;
     }
 }
 
-/* Images kabhi bhi container se bahar na niklein */
 img {
     max-width: 100%;
     height: auto;
@@ -171,7 +166,7 @@ div[data-testid="stMarkdownContainer"] {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: nowrap;                     /* resize par kabhi wrap nahi - ek hi row */
+    flex-wrap: nowrap;                    
     gap: 14px 20px;
     padding: clamp(10px, 1.5vw, 16px) clamp(14px, 2vw, 24px);
     margin-bottom: 20px;
@@ -222,11 +217,11 @@ div[data-testid="stMarkdownContainer"] {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: nowrap;        /* resize par kabhi wrap nahi - ek hi row */
+    flex-wrap: nowrap;       
     justify-content: flex-end;
     flex: 1;
     min-width: 0;
-    overflow-x: auto;         /* bahut narrow -> nav scroll ho jati hai */
+    overflow-x: auto;         
     scrollbar-width: thin;
 }
 
@@ -234,7 +229,7 @@ div[data-testid="stMarkdownContainer"] {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    flex: 0 0 auto;           /* pills shrink nahi hongi */
+    flex: 0 0 auto;           
     background: transparent;
     border: 1px solid transparent;
     color: var(--text-secondary);
@@ -263,7 +258,7 @@ div[data-testid="stMarkdownContainer"] {
     box-shadow: 0 0 12px var(--accent-glow);
 }
 
-/* Logout button - red accent (semantic, rakh rahe hain) */
+/* Logout button - red accent (semantic) */
 .nav-btn.logout:hover,
 .nav-btn.logout.active {
     color: #f87171;
@@ -272,13 +267,58 @@ div[data-testid="stMarkdownContainer"] {
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.12);
 }
 
-/* Chhoti window: labels chhupao -> icon-only pills, layout waise hi rahega */
 @media (max-width: 720px) {
     .nav-btn .nav-label { display: none; }
     .nav-btn { padding: 8px 12px; }
 }
 
-/* Bahut chhoti: brand text chhupao, sirf logo */
 @media (max-width: 480px) {
     .brand-name { display: none; }
+}
+
+
+/* -----------------------------------------------------------
+   Achievement Badge Cards
+   ----------------------------------------------------------- */
+
+.badge-card {
+    background: rgba(222, 177, 190, 0.07) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 0.5px solid rgba(201, 24, 74, 0.22) !important;
+    border-radius: 14px !important;
+    padding: 18px 10px !important;
+    margin: 5px 0 !important;
+    text-align: center !important;
+    min-height: 135px !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 8px 32px rgba(128, 0, 32, 0.28) !important;
+}
+
+.badge-card:hover {
+    background: rgba(201, 24, 74, 0.12) !important;
+    transform: translateY(-2px);
+}
+
+.badge-icon {
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.badge-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 5px 0;
+}
+
+.badge-requirement {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 4px 0;
+}
+
+.badge-status {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
 }
