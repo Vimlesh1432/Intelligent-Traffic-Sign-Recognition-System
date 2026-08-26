@@ -120,8 +120,7 @@ def dashboard():
     # ================= Footer =================
     st.markdown("""
         <div style="text-align:center; padding: 20px; opacity: 0.6; font-size: 14px;">
-            <p>Intelligent Traffic Sign Recognition System | Version 1.0</p>
-            <p>Built with ❤️ by Vimlesh !</p>
+            <p>Intelligent Traffic Sign Recognition System | Version 1.0</p>  
             <p>© 2026 - All Rights Reserved.</p>
         </div>
     """, unsafe_allow_html=True)
